@@ -17,11 +17,13 @@ public class SubjectsFragment extends Fragment implements ThemeAware {
     SubjectAdapter adapter;
     ArrayList<Subject> subjectList;
     View rootView;
+    SharedPrefManager prefManager;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.fragment_subjects, container, false);
+        prefManager = new SharedPrefManager(getContext());
 
         recyclerView = rootView.findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
@@ -36,6 +38,14 @@ public class SubjectsFragment extends Fragment implements ThemeAware {
     @Override
     public void onResume() {
         super.onResume();
+        // Refresh folder counts from SharedPrefs so they update after deletes/adds
+        if (subjectList != null && prefManager != null) {
+            for (Subject s : subjectList) {
+                int count = prefManager.getFolderNames(s.getName()).size();
+                s.setFolderCount(count == 0 ? 4 : count); // 4 = default folders
+            }
+            if (adapter != null) adapter.notifyDataSetChanged();
+        }
         if (getActivity() instanceof MainActivity) {
             onThemeChanged(((MainActivity) getActivity()).isDarkMode());
         }
@@ -43,10 +53,10 @@ public class SubjectsFragment extends Fragment implements ThemeAware {
 
     private void loadData() {
         subjectList = new ArrayList<>();
-        subjectList.add(new Subject("Operating System",      4, R.drawable.app_logo2));
-        subjectList.add(new Subject("Data Structures",       4, R.drawable.app_logo2));
-        subjectList.add(new Subject("Software Engineering",  4, R.drawable.app_logo2));
-        subjectList.add(new Subject("Database Systems",      4, R.drawable.app_logo2));
+        subjectList.add(new Subject("Operating System",     4, R.drawable.app_logo2));
+        subjectList.add(new Subject("Data Structures",      4, R.drawable.app_logo2));
+        subjectList.add(new Subject("Software Engineering", 4, R.drawable.app_logo2));
+        subjectList.add(new Subject("Database Systems",     4, R.drawable.app_logo2));
     }
 
     @Override

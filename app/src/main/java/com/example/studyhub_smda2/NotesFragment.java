@@ -19,7 +19,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class NotesFragment extends Fragment {
@@ -50,7 +50,7 @@ public class NotesFragment extends Fragment {
                     imageList.add(new NoteImage(uri));
                     adapter.notifyDataSetChanged();
 
-                    Set<String> paths = new HashSet<>(prefManager.getImagePaths(prefKey));
+                    Set<String> paths = new LinkedHashSet<>(prefManager.getImagePaths(prefKey));
                     paths.add(uri.toString());
                     prefManager.saveImagePaths(prefKey, paths);
                 }
@@ -76,38 +76,39 @@ public class NotesFragment extends Fragment {
         prefKey = subjectName + "_" + folderName;
         tvFolderTitle.setText(folderName);
 
-        // Load saved images — seed defaults if first time opening this folder
         Set<String> savedPaths = prefManager.getImagePaths(prefKey);
         imageList = new ArrayList<>();
 
         if (savedPaths.isEmpty()) {
-            // Pre-load the 2 app drawable images as defaults
-            // We use the resource URI format so they work like any other image
-            Uri img1 = Uri.parse("android.resource://" + requireContext().getPackageName() + "/" + R.drawable.app_logo2);
-            Uri img2 = Uri.parse("android.resource://" + requireContext().getPackageName() + "/" + R.drawable.app_logo);
-            imageList.add(new NoteImage(img1));
-            imageList.add(new NoteImage(img2));
+            // Pre-load 3 copies of app_logo2 as default images
+            String logoUri = "android.resource://" + requireContext().getPackageName() + "/" + R.drawable.app_logo2;
+            imageList.add(new NoteImage(Uri.parse(logoUri)));
+            imageList.add(new NoteImage(Uri.parse(logoUri)));
+            imageList.add(new NoteImage(Uri.parse(logoUri)));
 
-            // Save them to prefs
-            Set<String> defaultPaths = new HashSet<>();
-            defaultPaths.add(img1.toString());
-            defaultPaths.add(img2.toString());
+            Set<String> defaultPaths = new LinkedHashSet<>();
+            defaultPaths.add(logoUri + "#1");
+            defaultPaths.add(logoUri + "#2");
+            defaultPaths.add(logoUri + "#3");
             prefManager.saveImagePaths(prefKey, defaultPaths);
         } else {
             for (String path : savedPaths) {
-                imageList.add(new NoteImage(Uri.parse(path)));
+                // Strip the #1 #2 #3 suffix we added for uniqueness in the set
+                String cleanPath = path.contains("#") ? path.substring(0, path.lastIndexOf("#")) : path;
+                imageList.add(new NoteImage(Uri.parse(cleanPath)));
             }
         }
 
-        // Pass showPreview flag to adapter so it knows whether to show images
         boolean showPreview = prefManager.isShowPreview();
 
         adapter = new NotesAdapter(getContext(), imageList, showPreview, (position, noteImage) -> {
             imageList.remove(position);
             adapter.notifyDataSetChanged();
 
-            Set<String> paths = new HashSet<>(prefManager.getImagePaths(prefKey));
+            Set<String> paths = new LinkedHashSet<>(prefManager.getImagePaths(prefKey));
             paths.remove(noteImage.getImageUri().toString());
+            // Also try removing with suffixes
+            paths.removeIf(p -> p.startsWith(noteImage.getImageUri().toString()));
             prefManager.saveImagePaths(prefKey, paths);
         });
 
@@ -123,7 +124,7 @@ public class NotesFragment extends Fragment {
         });
 
         btnShareImage.setOnClickListener(v -> {
-            if (lastSelectedUri == null && imageList.isEmpty()) {
+            if (imageList.isEmpty()) {
                 Toast.makeText(getContext(), "No image to share!", Toast.LENGTH_SHORT).show();
                 return;
             }

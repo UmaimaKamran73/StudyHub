@@ -8,7 +8,6 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <!-- Header + TabLayout — always visible -->
     <LinearLayout
         android:id="@+id/headerLayout"
         android:layout_width="match_parent"
@@ -20,6 +19,7 @@
         android:paddingBottom="0dp">
 
         <TextView
+            android:id="@+id/tvAppTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/studyHub"
@@ -38,7 +38,6 @@
 
     </LinearLayout>
 
-    <!-- ViewPager2 fills remaining space — tabs always clickable -->
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/viewPager"
         android:layout_width="match_parent"

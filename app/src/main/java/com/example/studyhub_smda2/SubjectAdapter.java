@@ -1,7 +1,6 @@
 package com.example.studyhub_smda2;
 
 import android.content.Context;
-import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,7 +9,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
@@ -21,7 +19,7 @@ public class SubjectAdapter extends RecyclerView.Adapter<SubjectAdapter.SubjectV
     ArrayList<Subject> subjectList;
 
     public SubjectAdapter(Context context, ArrayList<Subject> subjectList) {
-        this.context = context;
+        this.context     = context;
         this.subjectList = subjectList;
     }
 
@@ -35,13 +33,19 @@ public class SubjectAdapter extends RecyclerView.Adapter<SubjectAdapter.SubjectV
     @Override
     public void onBindViewHolder(@NonNull SubjectViewHolder holder, int position) {
         Subject subject = subjectList.get(position);
+        boolean isDark  = new SharedPrefManager(context).isDarkMode();
 
         holder.subjectName.setText(subject.getName());
         holder.folderCount.setText(subject.getFolderCount() + " folders");
         holder.subjectIcon.setImageResource(subject.getIconResId());
 
+        // Text color: white in dark mode, darkPurple in light
+        int textColor = isDark
+                ? context.getColor(R.color.white)
+                : context.getColor(R.color.darkPurple);
+        holder.subjectName.setTextColor(textColor);
+
         holder.btnOpenFolder.setOnClickListener(v -> {
-            // Switch to Folders tab and load this subject's folders
             MainActivity activity = (MainActivity) context;
             activity.openFoldersForSubject(subject.getName());
         });
