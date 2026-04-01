@@ -41,24 +41,9 @@ public class SubjectAdapter extends RecyclerView.Adapter<SubjectAdapter.SubjectV
         holder.subjectIcon.setImageResource(subject.getIconResId());
 
         holder.btnOpenFolder.setOnClickListener(v -> {
-            // Save last opened subject
-            new SharedPrefManager(context).setLastSubject(subject.getName());
-
-            // Build FoldersFragment with subject name
-            FoldersFragment foldersFragment = new FoldersFragment();
-            Bundle bundle = new Bundle();
-            bundle.putString("subjectName", subject.getName());
-            foldersFragment.setArguments(bundle);
-
-            AppCompatActivity activity = (AppCompatActivity) context;
-            // Show the fragment container (hides ViewPager, disables tabs)
-            ((MainActivity) activity).showFragmentContainer();
-
-            activity.getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.fragmentContainer, foldersFragment)
-                    .addToBackStack(null)
-                    .commit();
+            // Switch to Folders tab and load this subject's folders
+            MainActivity activity = (MainActivity) context;
+            activity.openFoldersForSubject(subject.getName());
         });
     }
 
@@ -72,9 +57,9 @@ public class SubjectAdapter extends RecyclerView.Adapter<SubjectAdapter.SubjectV
 
         public SubjectViewHolder(@NonNull View itemView) {
             super(itemView);
-            subjectName  = itemView.findViewById(R.id.subjectName);
-            folderCount  = itemView.findViewById(R.id.folderCount);
-            subjectIcon  = itemView.findViewById(R.id.subjectIcon);
+            subjectName   = itemView.findViewById(R.id.subjectName);
+            folderCount   = itemView.findViewById(R.id.folderCount);
+            subjectIcon   = itemView.findViewById(R.id.subjectIcon);
             btnOpenFolder = itemView.findViewById(R.id.btnOpenFolder);
         }
     }

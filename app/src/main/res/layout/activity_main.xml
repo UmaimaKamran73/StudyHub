@@ -29,29 +29,20 @@
             android:layout_marginBottom="8dp"/>
 
         <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tabLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/tabLayout"
             app:tabTextColor="@color/darkPurple"
             app:tabSelectedTextColor="@color/darkPurple"
             app:tabIndicatorColor="@color/peach"/>
 
     </LinearLayout>
 
-    <!-- ViewPager2: shown on main tabs -->
+    <!-- ViewPager2 fills remaining space — tabs always clickable -->
     <androidx.viewpager2.widget.ViewPager2
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
         android:id="@+id/viewPager"
-        android:layout_weight="1"/>
-
-    <!-- Fragment container: shown when navigating into Folders / Notes.
-         Uses layout_weight so it fills the remaining screen below the header. -->
-    <FrameLayout
-        android:id="@+id/fragmentContainer"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:visibility="gone"/>
+        android:layout_weight="1"/>
 
 </LinearLayout>

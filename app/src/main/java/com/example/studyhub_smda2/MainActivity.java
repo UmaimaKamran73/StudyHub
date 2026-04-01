@@ -1,7 +1,6 @@
 package com.example.studyhub_smda2;
 
 import android.os.Bundle;
-import android.view.View;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.OnBackPressedCallback;
@@ -16,10 +15,11 @@ import com.google.android.material.tabs.TabLayoutMediator;
 
 public class MainActivity extends AppCompatActivity {
 
-    TabLayout tabLayout;
-    ViewPager2 viewPager;
-    View fragmentContainer;
-    View headerLayout;
+    public TabLayout tabLayout;
+    public ViewPager2 viewPager;
+
+    // Stored here so FoldersFragment can pick it up when it becomes ready
+    public String pendingSubjectName = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,10 +32,14 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        init();
+        tabLayout = findViewById(R.id.tabLayout);
+        viewPager = findViewById(R.id.viewPager);
 
         ViewPagerAdapter adapter = new ViewPagerAdapter(this);
         viewPager.setAdapter(adapter);
+
+        // No swipe — tabs only
+        viewPager.setUserInputEnabled(false);
 
         new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {
             switch (position) {
@@ -45,66 +49,61 @@ public class MainActivity extends AppCompatActivity {
             }
         }).attach();
 
-        // Handle back press: if fragmentContainer is visible, pop the back stack.
-        // If back stack becomes empty after popping, return to ViewPager.
+        // Back press handling
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
-                if (fragmentContainer.getVisibility() == View.VISIBLE) {
-                    if (getSupportFragmentManager().getBackStackEntryCount() > 1) {
-                        // Still more fragments in back stack — just pop
-                        getSupportFragmentManager().popBackStack();
-                    } else {
-                        // Last fragment — go back to ViewPager
-                        getSupportFragmentManager().popBackStack();
-                        showViewPager();
+                if (viewPager.getCurrentItem() == 1) {
+                    FoldersFragment foldersFragment = getFoldersFragment();
+                    if (foldersFragment != null && foldersFragment.handleBackPress()) {
+                        return;
                     }
-                } else {
-                    // We are on the ViewPager — let the system handle (exits app)
-                    setEnabled(false);
-                    getOnBackPressedDispatcher().onBackPressed();
+                    // Go back to Subjects tab
+                    viewPager.setCurrentItem(0, true);
+                    return;
                 }
+                setEnabled(false);
+                getOnBackPressedDispatcher().onBackPressed();
             }
         });
     }
 
-    private void init() {
-        tabLayout = findViewById(R.id.tabLayout);
-        viewPager = findViewById(R.id.viewPager);
-        fragmentContainer = findViewById(R.id.fragmentContainer);
-        headerLayout = findViewById(R.id.headerLayout);
+    /**
+     * Called from SubjectAdapter when "Open Folder" is clicked.
+     * Stores the subject name, switches to Folders tab.
+     * FoldersFragment picks up pendingSubjectName in its onResume().
+     */
+    public void openFoldersForSubject(String subjectName) {
+        pendingSubjectName = subjectName;
+        viewPager.setCurrentItem(1, true);
+    }
+
+    public FoldersFragment getFoldersFragment() {
+        String tag = "f" + viewPager.getId() + ":1";
+        return (FoldersFragment) getSupportFragmentManager().findFragmentByTag(tag);
     }
 
     /**
-     * Call this before doing a fragment transaction to navigate
-     * into a sub-screen (Folders or Notes).
+     * Apply dark purple mode across the whole app.
+     * Fragments also call this on their own views via applyDarkModeToView().
      */
-    public void showFragmentContainer() {
-        fragmentContainer.setVisibility(View.VISIBLE);
-        viewPager.setVisibility(View.GONE);
-        // Disable tab switching while inside a sub-screen
-        tabLayout.setEnabled(false);
-        for (int i = 0; i < tabLayout.getTabCount(); i++) {
-            TabLayout.Tab tab = tabLayout.getTabAt(i);
-            if (tab != null && tab.view != null) {
-                tab.view.setClickable(false);
+    public void applyDarkMode(boolean isDark) {
+        int bgColor  = isDark ? getColor(R.color.darkPurple) : getColor(R.color.white);
+        int headerBg = isDark ? getColor(R.color.darkPurple) : getColor(R.color.lightPurple);
+
+        findViewById(R.id.main).setBackgroundColor(bgColor);
+        findViewById(R.id.headerLayout).setBackgroundColor(headerBg);
+
+        // Also push to every fragment that is currently alive
+        for (androidx.fragment.app.Fragment f :
+                getSupportFragmentManager().getFragments()) {
+            if (f instanceof ThemeAware && f.getView() != null) {
+                ((ThemeAware) f).onThemeChanged(isDark);
             }
         }
     }
 
-    /**
-     * Call this when returning to the main ViewPager.
-     */
-    public void showViewPager() {
-        fragmentContainer.setVisibility(View.GONE);
-        viewPager.setVisibility(View.VISIBLE);
-        // Re-enable tabs
-        tabLayout.setEnabled(true);
-        for (int i = 0; i < tabLayout.getTabCount(); i++) {
-            TabLayout.Tab tab = tabLayout.getTabAt(i);
-            if (tab != null && tab.view != null) {
-                tab.view.setClickable(true);
-            }
-        }
+    public boolean isDarkMode() {
+        return new SharedPrefManager(this).isDarkMode();
     }
 }

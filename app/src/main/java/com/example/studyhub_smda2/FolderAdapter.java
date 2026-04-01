@@ -1,15 +1,12 @@
 package com.example.studyhub_smda2;
 
 import android.content.Context;
-import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.TextView;
-
-import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
 
@@ -19,23 +16,21 @@ public class FolderAdapter extends BaseAdapter {
     ArrayList<Folder> folderList;
     String subjectName;
     SharedPrefManager prefManager;
+    FoldersFragment foldersFragment;
 
     public FolderAdapter(Context context, ArrayList<Folder> folderList,
-                         String subjectName, SharedPrefManager prefManager) {
+                         String subjectName, SharedPrefManager prefManager,
+                         FoldersFragment foldersFragment) {
         this.context = context;
         this.folderList = folderList;
         this.subjectName = subjectName;
         this.prefManager = prefManager;
+        this.foldersFragment = foldersFragment;
     }
 
-    @Override
-    public int getCount() { return folderList.size(); }
-
-    @Override
-    public Object getItem(int position) { return folderList.get(position); }
-
-    @Override
-    public long getItemId(int position) { return position; }
+    @Override public int getCount() { return folderList.size(); }
+    @Override public Object getItem(int pos) { return folderList.get(pos); }
+    @Override public long getItemId(int pos) { return pos; }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
@@ -52,44 +47,22 @@ public class FolderAdapter extends BaseAdapter {
 
         tvFolderName.setText(folder.getName());
 
-        // Refresh image count from SharedPreferences each time view is drawn
+        // Always pull fresh image count from SharedPreferences
         String prefKey = subjectName + "_" + folder.getName();
         int count = prefManager.getImagePaths(prefKey).size();
         folder.setImageCount(count);
         tvImageCount.setText(count + " images");
 
         btnOpen.setOnClickListener(v -> {
-            NotesFragment notesFragment = new NotesFragment();
-            Bundle bundle = new Bundle();
-            bundle.putString("folderName", folder.getName());
-            bundle.putString("subjectName", subjectName);
-            notesFragment.setArguments(bundle);
-
-            AppCompatActivity activity = (AppCompatActivity) context;
-            // fragmentContainer is already visible (we are inside it),
-            // so just replace and add to back stack.
-            activity.getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.fragmentContainer, notesFragment)
-                    .addToBackStack(null)
-                    .commit();
+            // Tell FoldersFragment to open the notes view inside itself
+            foldersFragment.openNotes(folder.getName());
         });
 
         btnDelete.setOnClickListener(v -> {
-            String key = subjectName + "_" + folder.getName();
-            // Remove all images stored under this folder
-            prefManager.removeImagePaths(key);
+            prefManager.removeImagePaths(subjectName + "_" + folder.getName());
             folderList.remove(position);
             notifyDataSetChanged();
-
-            // Tell the fragment to persist the updated list
-            if (context instanceof AppCompatActivity) {
-                AppCompatActivity activity = (AppCompatActivity) context;
-                FoldersFragment frag = (FoldersFragment) activity
-                        .getSupportFragmentManager()
-                        .findFragmentById(R.id.fragmentContainer);
-                if (frag != null) frag.onFolderDeleted();
-            }
+            foldersFragment.onFolderDeleted();
         });
 
         return convertView;
