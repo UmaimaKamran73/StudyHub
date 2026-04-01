@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
+    <color name="lightPurple">#EAD5F5</color>
+    <color name="darkPurple">#7B2FBE</color>
+    <color name="peach">#FFAB91</color>
+    <color name="peachLight">#FFE0D0</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="lightpurple">#975ED1</color>
-    <color  name="darkpurple">#9C27B0</color>
+    <color name="black">#FF000000</color>
 
 </resources>

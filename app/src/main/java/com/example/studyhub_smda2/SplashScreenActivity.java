@@ -39,8 +39,8 @@ public class SplashScreenActivity extends AppCompatActivity {
     }
 
     private void init() {
-        applogo = findViewById(R.id.applogo);
-        appname = findViewById(R.id.appname);
+        applogo = findViewById(R.id.appLogo);
+        appname = findViewById(R.id.appName);
         loadAnimation();
     }
 

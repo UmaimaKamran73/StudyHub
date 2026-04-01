@@ -1,5 +1,24 @@
 <resources>
     <string name="app_name">StudyHub_SMDA2</string>
     <string name="app_logo_description">app-logo</string>
-    <string name="studyhub">StudyHub</string>
+    <string name="studyHub">StudyHub</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="_3_folders">3 folders</string>
+    <string name="open">Open</string>
+    <string name="subject_name">Subject Name</string>
+    <string name="open_folder">Open Folder</string>
+    <string name="delete">Delete</string>
+    <string name="folder_icon">folder icon</string>
+    <string name="add_image">Add Image</string>
+    <string name="share_image">Share Image</string>
+    <string name="img_note">img note</string>
+    <string name="clear_all_notes">Clear All Notes</string>
+    <string name="reset_app_data">Reset App Data</string>
+    <string name="app_info">App Info</string>
+    <string name="display_image_thumbnails_in_folders">Display image thumbnails in folders</string>
+    <string name="show_image_preview">Show Image Preview</string>
+    <string name="switch_app_to_dark_theme">Switch app to dark theme</string>
+    <string name="dark_mode">Dark Mode</string>
+    <string name="settings">Settings</string>
 </resources>

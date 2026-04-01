@@ -6,26 +6,26 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/lightpurple"
+    android:background="@color/lightPurple"
     tools:context=".SplashScreenActivity">
 
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="400dp"
-        android:id="@+id/applogo"
+        android:id="@+id/appLogo"
         android:contentDescription="@string/app_logo_description"
         android:src="@drawable/app_logo"
-        app:tint="@color/darkpurple" />
+        app:tint="@color/darkPurple" />
     <!--kindly change the app logo icon-->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textColor="@color/white"
         android:layout_marginTop="20dp"
-        android:id="@+id/appname"
+        android:id="@+id/appName"
         android:textAlignment="center"
-        android:text="@string/studyhub"
+        android:text="@string/studyHub"
         android:textSize="24sp"
         android:textStyle="bold"
 />
