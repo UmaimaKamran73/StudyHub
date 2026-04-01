@@ -23,7 +23,7 @@ public class SubjectsFragment extends Fragment implements ThemeAware {
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.fragment_subjects, container, false);
 
-        recyclerView = rootView.findViewById(R.id.recyclerView );
+        recyclerView = rootView.findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
 
         loadData();
@@ -43,10 +43,10 @@ public class SubjectsFragment extends Fragment implements ThemeAware {
 
     private void loadData() {
         subjectList = new ArrayList<>();
-        subjectList.add(new Subject("Mathematics",    4, R.drawable.app_logo2));
-        subjectList.add(new Subject("Physics",        4, R.drawable.app_logo2));
-        subjectList.add(new Subject("Computer Science", 4, R.drawable.app_logo2));
-        subjectList.add(new Subject("English",        4, R.drawable.app_logo2));
+        subjectList.add(new Subject("Operating System",      4, R.drawable.app_logo2));
+        subjectList.add(new Subject("Data Structures",       4, R.drawable.app_logo2));
+        subjectList.add(new Subject("Software Engineering",  4, R.drawable.app_logo2));
+        subjectList.add(new Subject("Database Systems",      4, R.drawable.app_logo2));
     }
 
     @Override

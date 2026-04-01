@@ -33,7 +33,7 @@ public class NotesFragment extends Fragment {
 
     String folderName  = "";
     String subjectName = "";
-    String prefKey     = "";   // subjectName_folderName
+    String prefKey     = "";
 
     SharedPrefManager prefManager;
 
@@ -43,7 +43,6 @@ public class NotesFragment extends Fragment {
                     Uri uri = result.getData().getData();
                     if (uri == null) return;
 
-                    // Persist permission so we can re-read the URI after app restart
                     requireActivity().getContentResolver()
                             .takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
@@ -62,10 +61,10 @@ public class NotesFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_notes, container, false);
 
-        tvFolderTitle  = view.findViewById(R.id.tvFolderTitle);
-        btnAddImage    = view.findViewById(R.id.btnAddImage);
-        btnShareImage  = view.findViewById(R.id.btnShareImage);
-        recyclerView   = view.findViewById(R.id.notesRecyclerView);
+        tvFolderTitle = view.findViewById(R.id.tvFolderTitle);
+        btnAddImage   = view.findViewById(R.id.btnAddImage);
+        btnShareImage = view.findViewById(R.id.btnShareImage);
+        recyclerView  = view.findViewById(R.id.notesRecyclerView);
 
         prefManager = new SharedPrefManager(getContext());
 
@@ -74,17 +73,36 @@ public class NotesFragment extends Fragment {
             subjectName = getArguments().getString("subjectName", "");
         }
 
-        // Key is subject_folder so different subjects don't share images
         prefKey = subjectName + "_" + folderName;
         tvFolderTitle.setText(folderName);
 
-        // Load saved images
+        // Load saved images — seed defaults if first time opening this folder
+        Set<String> savedPaths = prefManager.getImagePaths(prefKey);
         imageList = new ArrayList<>();
-        for (String path : prefManager.getImagePaths(prefKey)) {
-            imageList.add(new NoteImage(Uri.parse(path)));
+
+        if (savedPaths.isEmpty()) {
+            // Pre-load the 2 app drawable images as defaults
+            // We use the resource URI format so they work like any other image
+            Uri img1 = Uri.parse("android.resource://" + requireContext().getPackageName() + "/" + R.drawable.app_logo2);
+            Uri img2 = Uri.parse("android.resource://" + requireContext().getPackageName() + "/" + R.drawable.app_logo);
+            imageList.add(new NoteImage(img1));
+            imageList.add(new NoteImage(img2));
+
+            // Save them to prefs
+            Set<String> defaultPaths = new HashSet<>();
+            defaultPaths.add(img1.toString());
+            defaultPaths.add(img2.toString());
+            prefManager.saveImagePaths(prefKey, defaultPaths);
+        } else {
+            for (String path : savedPaths) {
+                imageList.add(new NoteImage(Uri.parse(path)));
+            }
         }
 
-        adapter = new NotesAdapter(getContext(), imageList, (position, noteImage) -> {
+        // Pass showPreview flag to adapter so it knows whether to show images
+        boolean showPreview = prefManager.isShowPreview();
+
+        adapter = new NotesAdapter(getContext(), imageList, showPreview, (position, noteImage) -> {
             imageList.remove(position);
             adapter.notifyDataSetChanged();
 
@@ -106,10 +124,9 @@ public class NotesFragment extends Fragment {
 
         btnShareImage.setOnClickListener(v -> {
             if (lastSelectedUri == null && imageList.isEmpty()) {
-                Toast.makeText(getContext(), "No image selected to share!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "No image to share!", Toast.LENGTH_SHORT).show();
                 return;
             }
-            // Share the last selected image, or the first one in the list
             Uri uriToShare = lastSelectedUri != null ? lastSelectedUri : imageList.get(0).getImageUri();
             Intent shareIntent = new Intent(Intent.ACTION_SEND);
             shareIntent.setType("image/*");

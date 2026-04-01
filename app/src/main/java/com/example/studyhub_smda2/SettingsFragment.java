@@ -6,7 +6,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ScrollView;
-
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -28,7 +27,7 @@ public class SettingsFragment extends Fragment implements ThemeAware {
 
         prefManager = new SharedPrefManager(getContext());
 
-        rootLayout = view.findViewById(R.id.settingsRoot);
+        rootLayout         = view.findViewById(R.id.settingsRoot);
         switchDarkMode     = view.findViewById(R.id.switchDarkMode);
         switchImagePreview = view.findViewById(R.id.switchImagePreview);
         btnClearNotes      = view.findViewById(R.id.btnClearNotes);
@@ -36,18 +35,13 @@ public class SettingsFragment extends Fragment implements ThemeAware {
         tvLastSubject      = view.findViewById(R.id.tvLastSubject);
         tvFolderCount      = view.findViewById(R.id.tvFolderCount);
 
-        // Restore saved states
         switchDarkMode.setChecked(prefManager.isDarkMode());
         switchImagePreview.setChecked(prefManager.isShowPreview());
-        tvLastSubject.setText("Last opened subject: " + prefManager.getLastSubject());
-        tvFolderCount.setText("Total folders: " + prefManager.getFolderCount());
 
-        // Apply saved dark mode on load
         onThemeChanged(prefManager.isDarkMode());
 
         switchDarkMode.setOnCheckedChangeListener((btn, isChecked) -> {
             prefManager.setDarkMode(isChecked);
-            // Push to MainActivity which broadcasts to all fragments
             if (getActivity() instanceof MainActivity) {
                 ((MainActivity) getActivity()).applyDarkMode(isChecked);
             }
@@ -72,8 +66,7 @@ public class SettingsFragment extends Fragment implements ThemeAware {
             prefManager.resetAll();
             switchDarkMode.setChecked(false);
             switchImagePreview.setChecked(true);
-            tvLastSubject.setText("Last opened subject: None");
-            tvFolderCount.setText("Total folders: 0");
+            refreshStats();
             if (getActivity() instanceof MainActivity) {
                 ((MainActivity) getActivity()).applyDarkMode(false);
             }
@@ -86,7 +79,14 @@ public class SettingsFragment extends Fragment implements ThemeAware {
     @Override
     public void onResume() {
         super.onResume();
+        // Always refresh stats when user comes to this tab
+        refreshStats();
         onThemeChanged(prefManager.isDarkMode());
+    }
+
+    private void refreshStats() {
+        tvLastSubject.setText("Last opened subject: " + prefManager.getLastSubject());
+        tvFolderCount.setText("Total folders: " + prefManager.getFolderCount());
     }
 
     @Override
