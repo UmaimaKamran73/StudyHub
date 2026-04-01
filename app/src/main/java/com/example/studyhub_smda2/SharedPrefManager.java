@@ -11,19 +11,20 @@ public class SharedPrefManager {
     private static final String PREF_NAME = "studyhub_prefs";
 
     // Keys
-    private static final String KEY_DARK_MODE = "studyhub.darkmode";
-    private static final String KEY_SHOW_PREVIEW = "studyhub.showPreview";
-    private static final String KEY_LAST_SUBJECT = "studyhub.lastSubject";
-    private static final String KEY_FOLDER_COUNT = "studyhub.folderCount";
-    private static final String KEY_IMAGE_PATHS_PREFIX = "studyhub.images.";
+    private static final String KEY_DARK_MODE      = "studyhub.darkmode";
+    private static final String KEY_SHOW_PREVIEW   = "studyhub.showPreview";
+    private static final String KEY_LAST_SUBJECT   = "studyhub.lastSubject";
+    private static final String KEY_FOLDER_COUNT   = "studyhub.folderCount";
+    private static final String KEY_IMAGE_PATHS_PREFIX  = "studyhub.images.";
+    private static final String KEY_FOLDER_NAMES_PREFIX = "studyhub.folders.";
 
-    private SharedPreferences prefs;
+    private final SharedPreferences prefs;
 
     public SharedPrefManager(Context context) {
         prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
     }
 
-    // Dark mode
+    // ── Dark mode ─────────────────────────────────────────────────────────────
     public void setDarkMode(boolean value) {
         prefs.edit().putBoolean(KEY_DARK_MODE, value).apply();
     }
@@ -31,7 +32,7 @@ public class SharedPrefManager {
         return prefs.getBoolean(KEY_DARK_MODE, false);
     }
 
-    // Show preview
+    // ── Show preview ──────────────────────────────────────────────────────────
     public void setShowPreview(boolean value) {
         prefs.edit().putBoolean(KEY_SHOW_PREVIEW, value).apply();
     }
@@ -39,7 +40,7 @@ public class SharedPrefManager {
         return prefs.getBoolean(KEY_SHOW_PREVIEW, true);
     }
 
-    // Last opened subject
+    // ── Last opened subject ───────────────────────────────────────────────────
     public void setLastSubject(String subjectName) {
         prefs.edit().putString(KEY_LAST_SUBJECT, subjectName).apply();
     }
@@ -47,7 +48,7 @@ public class SharedPrefManager {
         return prefs.getString(KEY_LAST_SUBJECT, "None");
     }
 
-    // Folder count
+    // ── Folder count (total across app) ──────────────────────────────────────
     public void setFolderCount(int count) {
         prefs.edit().putInt(KEY_FOLDER_COUNT, count).apply();
     }
@@ -55,18 +56,34 @@ public class SharedPrefManager {
         return prefs.getInt(KEY_FOLDER_COUNT, 0);
     }
 
-    // Image paths per folder
-    public void saveImagePaths(String folderName, Set<String> paths) {
-        prefs.edit().putStringSet(KEY_IMAGE_PATHS_PREFIX + folderName, paths).apply();
+    // ── Folder names per subject ──────────────────────────────────────────────
+    // Key format:  studyhub.folders.<subjectName>
+    public void setFolderNames(String subjectName, Set<String> names) {
+        prefs.edit().putStringSet(KEY_FOLDER_NAMES_PREFIX + subjectName, names).apply();
     }
-    public Set<String> getImagePaths(String folderName) {
-        return prefs.getStringSet(KEY_IMAGE_PATHS_PREFIX + folderName, new HashSet<>());
+    public Set<String> getFolderNames(String subjectName) {
+        // Return a mutable copy so callers can modify it safely
+        Set<String> saved = prefs.getStringSet(KEY_FOLDER_NAMES_PREFIX + subjectName, new HashSet<>());
+        return new HashSet<>(saved);
     }
-    public void removeImagePaths(String folderName) {
-        prefs.edit().remove(KEY_IMAGE_PATHS_PREFIX + folderName).apply();
+    public void removeFolderNames(String subjectName) {
+        prefs.edit().remove(KEY_FOLDER_NAMES_PREFIX + subjectName).apply();
     }
 
-    // Clear all notes (image paths only)
+    // ── Image paths per folder ────────────────────────────────────────────────
+    // Key format:  studyhub.images.<subjectName>_<folderName>
+    public void saveImagePaths(String key, Set<String> paths) {
+        prefs.edit().putStringSet(KEY_IMAGE_PATHS_PREFIX + key, paths).apply();
+    }
+    public Set<String> getImagePaths(String key) {
+        Set<String> saved = prefs.getStringSet(KEY_IMAGE_PATHS_PREFIX + key, new HashSet<>());
+        return new HashSet<>(saved);
+    }
+    public void removeImagePaths(String key) {
+        prefs.edit().remove(KEY_IMAGE_PATHS_PREFIX + key).apply();
+    }
+
+    // ── Clear all notes (image paths only) ───────────────────────────────────
     public void clearAllNotes() {
         SharedPreferences.Editor editor = prefs.edit();
         for (String key : prefs.getAll().keySet()) {
@@ -77,7 +94,7 @@ public class SharedPrefManager {
         editor.apply();
     }
 
-    // Reset everything
+    // ── Reset everything ──────────────────────────────────────────────────────
     public void resetAll() {
         prefs.edit().clear().apply();
     }

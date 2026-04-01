@@ -7,6 +7,16 @@
     android:background="@drawable/card_bg"
     android:padding="14dp">
 
+    <!-- Subject Icon -->
+    <ImageView
+        android:id="@+id/subjectIcon"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="center_horizontal"
+        android:contentDescription="subject icon"
+        android:src="@drawable/app_logo2"
+        android:layout_marginBottom="8dp"/>
+
     <TextView
         android:id="@+id/subjectName"
         android:layout_width="match_parent"
@@ -14,7 +24,7 @@
         android:textSize="15sp"
         android:textStyle="bold"
         android:textColor="@color/darkPurple"
-        android:layout_marginBottom="6dp"
+        android:layout_marginBottom="4dp"
         android:text="@string/subject_name"/>
 
     <TextView

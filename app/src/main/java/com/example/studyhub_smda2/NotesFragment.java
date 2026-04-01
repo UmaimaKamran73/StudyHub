@@ -29,21 +29,31 @@ public class NotesFragment extends Fragment {
     ArrayList<NoteImage> imageList;
     TextView tvFolderTitle;
     Button btnAddImage, btnShareImage;
-    Uri selectedImageUri;
-    String folderName = "";
+    Uri lastSelectedUri;
+
+    String folderName  = "";
+    String subjectName = "";
+    String prefKey     = "";   // subjectName_folderName
+
     SharedPrefManager prefManager;
 
     ActivityResultLauncher<Intent> galleryLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(), result -> {
                 if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
-                    selectedImageUri = result.getData().getData();
-                    imageList.add(new NoteImage(selectedImageUri));
+                    Uri uri = result.getData().getData();
+                    if (uri == null) return;
+
+                    // Persist permission so we can re-read the URI after app restart
+                    requireActivity().getContentResolver()
+                            .takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+                    lastSelectedUri = uri;
+                    imageList.add(new NoteImage(uri));
                     adapter.notifyDataSetChanged();
 
-                    // save image path to SharedPreferences
-                    Set<String> paths = new HashSet<>(prefManager.getImagePaths(folderName));
-                    paths.add(selectedImageUri.toString());
-                    prefManager.saveImagePaths(folderName, paths);
+                    Set<String> paths = new HashSet<>(prefManager.getImagePaths(prefKey));
+                    paths.add(uri.toString());
+                    prefManager.saveImagePaths(prefKey, paths);
                 }
             });
 
@@ -52,54 +62,59 @@ public class NotesFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_notes, container, false);
 
-        // init views first
-        tvFolderTitle = view.findViewById(R.id.tvFolderTitle);
-        btnAddImage = view.findViewById(R.id.btnAddImage);
-        btnShareImage = view.findViewById(R.id.btnShareImage);
-        recyclerView = view.findViewById(R.id.notesRecyclerView);
+        tvFolderTitle  = view.findViewById(R.id.tvFolderTitle);
+        btnAddImage    = view.findViewById(R.id.btnAddImage);
+        btnShareImage  = view.findViewById(R.id.btnShareImage);
+        recyclerView   = view.findViewById(R.id.notesRecyclerView);
 
         prefManager = new SharedPrefManager(getContext());
 
-        // get folder name from arguments
         if (getArguments() != null) {
-            folderName = getArguments().getString("folderName", "");
-            tvFolderTitle.setText(folderName);
+            folderName  = getArguments().getString("folderName",  "");
+            subjectName = getArguments().getString("subjectName", "");
         }
 
-        // load saved images from SharedPreferences
+        // Key is subject_folder so different subjects don't share images
+        prefKey = subjectName + "_" + folderName;
+        tvFolderTitle.setText(folderName);
+
+        // Load saved images
         imageList = new ArrayList<>();
-        Set<String> savedPaths = prefManager.getImagePaths(folderName);
-        for (String path : savedPaths) {
+        for (String path : prefManager.getImagePaths(prefKey)) {
             imageList.add(new NoteImage(Uri.parse(path)));
         }
 
         adapter = new NotesAdapter(getContext(), imageList, (position, noteImage) -> {
-            // delete callback - remove from list and SharedPreferences
             imageList.remove(position);
             adapter.notifyDataSetChanged();
 
-            Set<String> paths = new HashSet<>(prefManager.getImagePaths(folderName));
+            Set<String> paths = new HashSet<>(prefManager.getImagePaths(prefKey));
             paths.remove(noteImage.getImageUri().toString());
-            prefManager.saveImagePaths(folderName, paths);
+            prefManager.saveImagePaths(prefKey, paths);
         });
 
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
         recyclerView.setAdapter(adapter);
 
         btnAddImage.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_PICK);
+            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
             intent.setType("image/*");
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
             galleryLauncher.launch(intent);
         });
 
         btnShareImage.setOnClickListener(v -> {
-            if (selectedImageUri == null) {
+            if (lastSelectedUri == null && imageList.isEmpty()) {
                 Toast.makeText(getContext(), "No image selected to share!", Toast.LENGTH_SHORT).show();
                 return;
             }
+            // Share the last selected image, or the first one in the list
+            Uri uriToShare = lastSelectedUri != null ? lastSelectedUri : imageList.get(0).getImageUri();
             Intent shareIntent = new Intent(Intent.ACTION_SEND);
             shareIntent.setType("image/*");
-            shareIntent.putExtra(Intent.EXTRA_STREAM, selectedImageUri);
+            shareIntent.putExtra(Intent.EXTRA_STREAM, uriToShare);
+            shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             startActivity(Intent.createChooser(shareIntent, "Share via"));
         });
 

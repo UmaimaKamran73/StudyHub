@@ -38,20 +38,22 @@ public class SubjectAdapter extends RecyclerView.Adapter<SubjectAdapter.SubjectV
 
         holder.subjectName.setText(subject.getName());
         holder.folderCount.setText(subject.getFolderCount() + " folders");
-        //holder.subjectIcon.setImageResource(subject.getIconResId());
+        holder.subjectIcon.setImageResource(subject.getIconResId());
 
         holder.btnOpenFolder.setOnClickListener(v -> {
-            // will handle navigation later
-            // save to SharedPreferences
+            // Save last opened subject
             new SharedPrefManager(context).setLastSubject(subject.getName());
 
+            // Build FoldersFragment with subject name
             FoldersFragment foldersFragment = new FoldersFragment();
             Bundle bundle = new Bundle();
             bundle.putString("subjectName", subject.getName());
             foldersFragment.setArguments(bundle);
 
             AppCompatActivity activity = (AppCompatActivity) context;
+            // Show the fragment container (hides ViewPager, disables tabs)
             ((MainActivity) activity).showFragmentContainer();
+
             activity.getSupportFragmentManager()
                     .beginTransaction()
                     .replace(R.id.fragmentContainer, foldersFragment)
@@ -61,21 +63,18 @@ public class SubjectAdapter extends RecyclerView.Adapter<SubjectAdapter.SubjectV
     }
 
     @Override
-    public int getItemCount() {
-        return subjectList.size();
-    }
+    public int getItemCount() { return subjectList.size(); }
 
     public static class SubjectViewHolder extends RecyclerView.ViewHolder {
         TextView subjectName, folderCount;
-        //ImageView subjectIcon;
-
+        ImageView subjectIcon;
         Button btnOpenFolder;
 
         public SubjectViewHolder(@NonNull View itemView) {
             super(itemView);
-            subjectName = itemView.findViewById(R.id.subjectName);
-            folderCount = itemView.findViewById(R.id.folderCount);
-            //subjectIcon = itemView.findViewById(R.id.subjectIcon);
+            subjectName  = itemView.findViewById(R.id.subjectName);
+            folderCount  = itemView.findViewById(R.id.folderCount);
+            subjectIcon  = itemView.findViewById(R.id.subjectIcon);
             btnOpenFolder = itemView.findViewById(R.id.btnOpenFolder);
         }
     }
